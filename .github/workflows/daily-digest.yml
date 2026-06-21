@@ -1,0 +1,34 @@
+name: Daily World Digest
+
+on:
+  schedule:
+    # GitHub Actions cron is always in UTC. IST = UTC+5:30, so
+    # 03:30 UTC = 09:00 IST. (Note: GitHub's scheduler can run a few
+    # minutes late during peak load - this is a GitHub limitation, not
+    # something you can fully control.)
+    - cron: "30 3 * * *"
+  workflow_dispatch: {}  # adds a "Run workflow" button in the Actions tab for manual testing
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run digest script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SENDER_APP_PASSWORD: ${{ secrets.SENDER_APP_PASSWORD }}
+          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+        run: python main.py
